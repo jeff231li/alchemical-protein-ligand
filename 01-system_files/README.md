@@ -3,6 +3,10 @@ For this tutorial we will look at the binding of the ligand below to the protein
 
 ![](figure_ligand.png)
 
+The protein-ligand system looks like this
+
+![](figure-protein-ligand.png)
+
 ## Prepare protein and ligand files
 First, we need to prepare the ligand files. Run the following in a terminal to generate a MOL2 file with GAFF2 atom types and AM1BCC charges
 ```bash
