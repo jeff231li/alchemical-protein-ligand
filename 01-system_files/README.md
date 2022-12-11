@@ -1,7 +1,7 @@
 ## Protein-Ligand System
 For this tutorial we will look at the binding of the ligand below to the protein Cyclophilin D.
 
-
+![](figure_ligand.png)
 
 ## Prepare protein and ligand files
 First, we need to prepare the ligand files. Run the following in a terminal to generate a MOL2 file with GAFF2 atom types and AM1BCC charges
