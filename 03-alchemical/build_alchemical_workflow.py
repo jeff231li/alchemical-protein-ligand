@@ -225,7 +225,7 @@ guest_restraints, wall_restraints = get_guest_restraints(
 )
 # Save restraints to file
 save_restraints(
-    guest_restraints + wall_restraints, filepath="boresch/boresch_restraints.json"
+    guest_restraints, filepath="boresch/boresch_restraints.json"
 )
 
 os.makedirs("attach", exist_ok=True)
