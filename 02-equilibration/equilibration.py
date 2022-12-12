@@ -7,6 +7,7 @@ from openmm.app import (
     DCDReporter,
     HBonds,
     NoCutoff,
+    PDBFile,
     Simulation,
     StateDataReporter,
 )
@@ -68,4 +69,15 @@ simulation.reporters.append(dcd_reporter)
 simulation.minimizeEnergy()
 
 # Run MD simulation (10 ns)
-simulation.step(10000)
+simulation.step(5000000)
+
+simulation.saveState("equilibrated.xml")
+
+# Save final frame to file
+positions = simulation.context.getState(getPositions=True).getPositions()
+with open("equilibrated.pdb", "w") as f:
+    PDBFile.writeFile(
+        prmtop.topology,
+        positions,
+        f,
+    )

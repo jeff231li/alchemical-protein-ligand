@@ -3,6 +3,7 @@ import os
 import shutil
 
 import numpy as np
+import openmm.unit as openmm_unit
 import openmm as openmm
 import openmm.app as app
 import parmed as pmd
@@ -17,6 +18,7 @@ from paprika.io import PaprikaDecoder, save_restraints
 from paprika.restraints import DAT_restraint, create_window_list
 from paprika.restraints.openmm import apply_dat_restraint
 from paprika.restraints.utils import parse_window
+from tqdm import tqdm
 
 
 def get_guest_restraints(
@@ -230,13 +232,13 @@ os.makedirs("attach", exist_ok=True)
 window_list = create_window_list(guest_restraints)
 
 # Write Attach Windows
-for window in window_list:
+for window in tqdm(window_list):
     folder = f"attach/{window}"
     os.makedirs(folder, exist_ok=True)
 
     window_number, phase = parse_window(window)
 
-    print(f"Creating XML for window {window} ...")
+    #print(f"Creating XML for window {window} ...")
 
     # Copy PDBFile
     shutil.copy("../02-equilibration/extra_equilibrated.pdb", f"{folder}/system.pdb")
@@ -290,20 +292,17 @@ for restraint in guest_restraints:
 
 # Convert to Alchemical System
 system_alch = alchemical_factory.create_alchemical_system(system, alchemical_region)
+integrator = openmm.VerletIntegrator(0.001*openmm_unit.picoseconds)
+context = openmm.Context(system_alch, integrator)
 
 # Write individual windows
-for i, lb in enumerate(lambda_elec_values):
+for i, lb in enumerate(tqdm(lambda_elec_values)):
     window = f"e{i:03}"
-    print(f"Creating XML for window {window} ...")
     os.makedirs(f"electrostatics-site/{window}", exist_ok=True)
     shutil.copy(
         "../02-equilibration/extra_equilibrated.pdb",
         f"electrostatics-site/{window}/system.pdb",
     )
-    alchemical_state = AlchemicalState.from_system(system_alch)
-    alchemical_state.lambda_sterics = 1.0
-    alchemical_state.lambda_electrostatics = lb
-
     with open(f"electrostatics-site/{window}/system.xml", "w") as file:
         file.write(openmm.XmlSerializer.serialize(system_alch))
 
@@ -322,17 +321,12 @@ for restraint in guest_restraints:
 # Convert to Alchemical System
 system_alch = alchemical_factory.create_alchemical_system(system, alchemical_region)
 
-for i, lb in enumerate(lambda_vdw_values):
+for i, lb in enumerate(tqdm(lambda_vdw_values)):
     window = f"v{i:03}"
-    print(f"Creating XML for window {window} ...")
     os.makedirs(f"lennard-jones/{window}", exist_ok=True)
     shutil.copy(
         "../02-equilibration/extra_equilibrated.pdb",
-        f"electrostatics-site/{window}/system.pdb",
+        f"lennard-jones/{window}/system.pdb",
     )
-    alchemical_state = AlchemicalState.from_system(system_alch)
-    alchemical_state.lambda_sterics = lb
-    alchemical_state.lambda_electrostatics = 0.0
-
     with open(f"lennard-jones/{window}/system.xml", "w") as file:
         file.write(openmm.XmlSerializer.serialize(system_alch))

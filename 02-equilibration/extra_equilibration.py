@@ -48,5 +48,10 @@ simulation.reporters.append(dcd_reporter)
 simulation.step(1500000)
 
 # Write final frame to file
+positions = simulation.context.getState(getPositions=True).getPositions()
 with open("extra_equilibrated.pdb", "w") as f:
-    PDBFile.writeFile()
+    PDBFile.writeFile(
+        pdbfile.topology,
+        positions,
+        f,
+    )
