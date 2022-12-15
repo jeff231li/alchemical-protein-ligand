@@ -30,6 +30,6 @@ unset __conda_setup
 
 conda activate forcebalance
 
-python ../../simulate_electrostatics-bulk.py
+python ../simulation-scripts/simulate_electrostatics-bulk.py
 
 exit

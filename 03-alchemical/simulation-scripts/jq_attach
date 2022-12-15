@@ -30,6 +30,6 @@ unset __conda_setup
 
 conda activate forcebalance
 
-python ../../../simulate_attach.py
+python ../../simulation-scripts/simulate_attach.py
 
 exit

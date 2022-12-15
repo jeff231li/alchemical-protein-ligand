@@ -30,6 +30,6 @@ unset __conda_setup
 
 conda activate forcebalance
 
-python ../../../simulate_lennard-jones.py CHANGELAMBDA
+python ../../simulation-scripts/simulate_lennard-jones.py CHANGELAMBDA
 
 exit
