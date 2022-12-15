@@ -5,4 +5,7 @@ Here, we will generate the files for running the double-decoupling method (DDM).
 4. (Bulk) scale partial charges on the ligand
 5. (Bulk) release restraints on ligand and add correction for 1 M standard-state.
 
-The last part is estimated analytically so no simulation will be needed.
+The last part is estimated analytically so no simulation will be needed. I've configured the scripts to make signs  match so that the binding free energy is just the sum of all the components: 
+
+
+DG_b = DG(attach) + DG(elec_site) + DG(vdw) + DG(elec_bulk) + DG(release)
