@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#PBS -l walltime=10:00:00,nodes=1:ppn=4:gpu3090 -q home-hopper
+#PBS -W group_list=hopper-group
+#PBS -A mgilson-hopper-gpu
+#PBS -j oe -r n
+#PBS -N CHANGEWINDOW
+
+Folder=${PBS_O_WORKDIR}
+cd ${Folder}/
+
+echo "Current directory: ${PBS_O_WORKDIR}"
+echo "PBS job id       : ${PBS_JOBID}"
+echo "PBS nodefile     : ${PBS_NODEFILE}"
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/jsetiadi/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/jsetiadi/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/jsetiadi/anaconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/jsetiadi/anaconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+conda activate forcebalance
+
+python ../../../simulate_attach.py
+
+exit
