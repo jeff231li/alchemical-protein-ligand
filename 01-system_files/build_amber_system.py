@@ -14,6 +14,8 @@ system.template_lines = [
     "model = loadpdb ligand.pdb",
 ]
 system.build(clean_files=False)
+# Do HMR so we can increase integration time step
+system.repartition_hydrogen_mass()
 
 # Build AMBER Topologies for Protein-Ligand system
 system = TLeap()
@@ -31,3 +33,6 @@ system.template_lines = [
     "model = loadpdb protein_ligand.pdb",
 ]
 system.build(clean_files=False)
+# Do HMR so we can increase integration time step
+system.repartition_hydrogen_mass()
+
