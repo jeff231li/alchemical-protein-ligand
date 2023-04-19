@@ -2,21 +2,156 @@ import logging
 from importlib import reload
 
 import numpy as np
-import simtk.unit as openmm_unit
-from openmmtools.alchemy import (
-    AbsoluteAlchemicalFactory,
-    AlchemicalRegion,
-    AlchemicalState,
-)
-from simtk.openmm import LangevinIntegrator, Platform, XmlSerializer
-from simtk.openmm.app import (
+import openmm.unit as unit
+from openmm import LangevinIntegrator, Platform, XmlSerializer
+from openmm.app import (
     CheckpointReporter,
     DCDReporter,
     PDBFile,
     Simulation,
     StateDataReporter,
 )
+from openmmtools.alchemy import (
+    AbsoluteAlchemicalFactory,
+    AlchemicalRegion,
+    AlchemicalState,
+)
 
+
+def run_molecular_dynamics_alchemical(
+    system_xml: str,
+    pdbfile: str,
+    time_steps: dict,
+    phase: str,
+    ligand_resname: str,
+    window_number: int = 1,
+    lambda_electrostatics: float = 1.0,
+    lambda_sterics: float = 1.0,
+    restart_file: str = None,
+    minimize_energy: bool = False,
+    write_energy: bool = True,
+    write_trajectory: bool = True,
+    write_checkpoint: bool = True,
+    properties: dict = {"Precision": "mixed"},
+):
+    """
+    Module to perform Molecular Dynamics simulations.
+    """
+    logger.info(
+        f"Running simulation for {phase} phase for l_elec = {lambda_electrostatics}  l_vdw = {lambda_sterics}..."
+    )
+
+    # Open system
+    with open(system_xml, "r") as file:
+        system = XmlSerializer.deserialize(file.read())
+    coords = PDBFile(pdbfile)
+
+    # Alchemical stuff
+    alchemical_atoms = [
+        atom.index
+        for atom in coords.topology.atoms()
+        if atom.residue.name == ligand_resname
+    ]
+    alchemical_factory = AbsoluteAlchemicalFactory(
+        consistent_exceptions=False,
+        alchemical_pme_treatment="exact",
+        disable_alchemical_dispersion_correction=False,
+    )
+    alchemical_region = AlchemicalRegion(
+        alchemical_atoms=alchemical_atoms,
+        annihilate_electrostatics=True,
+        annihilate_sterics=False,
+    )
+    alchemical_system = alchemical_factory.create_alchemical_system(
+        system, alchemical_region
+    )
+    alchemical_state = AlchemicalState.from_system(alchemical_system)
+
+    # Thermostat
+    integrator = LangevinIntegrator(
+        time_steps["integrator"]["temperature"],
+        time_steps["integrator"]["collision"],
+        time_steps["integration_time"][phase],
+    )
+
+    # Simulation Object
+    simulation = Simulation(
+        coords.topology,
+        alchemical_system,
+        integrator,
+        Platform.getPlatformByName("CUDA"),
+        properties,
+    )
+    # Set positions from PDB file
+    simulation.context.setPositions(coords.positions)
+
+    # Set alchemical state
+    alchemical_state.lambda_electrostatics = lambda_electrostatics
+    alchemical_state.lambda_sterics = lambda_sterics
+    alchemical_state.apply_to_context(simulation.context)
+
+    # Restart from previous run
+    if restart_file:
+        logger.info(f"\t\tRestarting from {restart_file} ...")
+        simulation.loadState(restart_file)
+        simulation.currentStep = 0
+
+    # Minimize Energy
+    if minimize_energy:
+        logger.info("\t\tMinimizing energy ...")
+        simulation.minimizeEnergy()
+
+    # Reporters
+    if write_trajectory:
+        simulation.reporters.append(
+            DCDReporter(
+                f"{phase}-{window_number}.dcd", time_steps["output_steps"][phase]
+            )
+        )
+    if write_checkpoint:
+        simulation.reporters.append(
+            CheckpointReporter(
+                f"{phase}-{window_number}_restart.xml",
+                time_steps["output_steps"][phase] * 10,
+                writeState=True,
+            )
+        )
+    if write_energy:
+        simulation.reporters.append(
+            StateDataReporter(
+                f"{phase}-{window_number}.log",
+                time_steps["output_steps"][phase],
+                step=True,
+                time=True,
+                potentialEnergy=True,
+                kineticEnergy=True,
+                totalEnergy=True,
+                temperature=True,
+                speed=True,
+                separator=",",
+            )
+        )
+
+    # MD Step
+    simulation.step(time_steps["simulation_steps"][phase])
+    simulation.saveState(f"{phase}-{window_number}.xml")
+    logger.info(f"\t\tCompleted running {phase} phase ...")
+
+
+# ------------------------------------------------------- #
+# GPU option
+# ------------------------------------------------------- #
+platform_properties = {"Precision": "mixed"}
+# Use the line below if you want to specify a specific GPU id on the Server
+# platform_properties = {"Precision": "mixed", "DeviceIndex": "2"} #<-- change "0" to "2" for GPU no 2
+
+# ------------------------------------------------------- #
+# File Options
+# ------------------------------------------------------- #
+system_xml = "ligand.xml"
+pdbfile = "ligand.pdb"
+
+# Initialize logger
 reload(logging)
 
 logger = logging.getLogger()
@@ -27,159 +162,108 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# Init
-properties = {"CudaPrecision": "mixed"}
-temperature = 298.15 * openmm_unit.kelvin
-pressure = 1.01325 * openmm_unit.bar
-kT = temperature * openmm_unit.BOLTZMANN_CONSTANT_kB * openmm_unit.AVOGADRO_CONSTANT_NA
-dt_therm = 1.0 * openmm_unit.femtoseconds
-dt_equil = 2.0 * openmm_unit.femtoseconds
-dt_prod = 2.0 * openmm_unit.femtoseconds
-equil_steps = 50000
-prod_steps = 500000
-out_freq = 500
+# ------------------------------------------------------- #
+# Setup Simulation Time and Output
+# ------------------------------------------------------- #
+time_steps = {
+    "integrator": {
+        "temperature": 298.15 * unit.kelvin,
+        "collision": 1.0 / unit.picoseconds,
+    },
+    "integration_time": {
+        "equilibration": 1.0 * unit.femtoseconds,
+        "production": 2.0 * unit.femtoseconds,
+    },
+    # ------------------------------------------------------- #
+    # Change the time below if you need to run less MD steps
+    "simulation_time": {
+        "equilibration": 50.0 * unit.picoseconds,
+        "production": 500.0 * unit.picoseconds,
+    },
+    # -------------------------------------------------------#
+    "simulation_steps": {
+        "equilibration": None,
+        "production": None,
+    },
+    "output_frequency": {
+        "equilibration": 20.0 * unit.picoseconds,
+        "production": 1.0 * unit.picoseconds,
+    },
+    "output_steps": {
+        "equilibration": None,
+        "production": None,
+    },
+}
 
-# MBAR stuff
+# Determine number of steps
+for phase in ["equilibration", "production"]:
+    time_steps["simulation_steps"][phase] = int(
+        np.ceil(
+            time_steps["simulation_time"][phase] / time_steps["integration_time"][phase]
+        )
+    )
+    time_steps["output_steps"][phase] = int(
+        np.ceil(
+            time_steps["output_frequency"][phase]
+            / time_steps["integration_time"][phase]
+        )
+    )
+    logger.info(f"{phase} intergation time -- {time_steps['integration_time'][phase]}")
+    logger.info(f"{phase} simulation time  -- {time_steps['simulation_time'][phase]}")
+    logger.info(f"{phase} output steps     -- {time_steps['output_steps'][phase]}")
+    logger.info(f"{phase} total steps      -- {time_steps['simulation_steps'][phase]}")
+
+time_steps["total_iterations"] = int(
+    time_steps["simulation_time"]["production"]
+    / time_steps["output_frequency"]["production"]
+)
+# ------------------------------------------------------- #
+# Alchemical Options
+# ------------------------------------------------------- #
+# Number of Lambda windows
+lambda_electrostatics = np.linspace(0, 1, 11)[::-1]
+n_lambda = len(lambda_electrostatics)
+
+lambda_sterics = 1.0
+
+# Residue name of Ligand
 resname = "LIG"
-total_iterations = int(prod_steps / out_freq)
-lambda_values = np.linspace(0, 1, 11)[::-1]
-n_lambda = len(lambda_values)
 
-# Open system
-with open("ligand.xml", "r") as file:
-    system = XmlSerializer.deserialize(file.read())
-coords = PDBFile("ligand.pdb")
-
-# Alchemical stuff
-alchemical_atoms = [
-    atom.index for atom in coords.topology.atoms() if atom.residue.name == resname
-]
-alchemical_factory = AbsoluteAlchemicalFactory(
-    consistent_exceptions=False,
-    alchemical_pme_treatment="exact",
-    disable_alchemical_dispersion_correction=False,
+# ------------------------------------------------------- #
+# Molecule Dynamics Simulation
+# ------------------------------------------------------- #
+# Minimization and Equilibration
+run_molecular_dynamics_alchemical(
+    system_xml=system_xml,
+    pdbfile=pdbfile,
+    time_steps=time_steps,
+    phase="equilibration",
+    ligand_resname=resname,
+    lambda_electrostatics=lambda_electrostatics[0],
+    lambda_sterics=lambda_sterics,
+    restart_file=None,
+    minimize_energy=True,
+    write_energy=True,
+    write_trajectory=False,
+    write_checkpoint=False,
+    properties=platform_properties,
 )
-alchemical_region = AlchemicalRegion(
-    alchemical_atoms=alchemical_atoms,
-    annihilate_electrostatics=True,
-    annihilate_sterics=False,
-)
-system = alchemical_factory.create_alchemical_system(system, alchemical_region)
-alchemical_state = AlchemicalState.from_system(system)
-
-# Minimization and Thermalisation
-# --------------------------------------------------------------------#
-logger.info("Minimizing and Thermalisation ...")
-
-# Thermostat
-integrator = LangevinIntegrator(temperature, 1.0 / openmm_unit.picoseconds, dt_therm)
-
-# Simulation Object
-simulation = Simulation(
-    coords.topology,
-    system,
-    integrator,
-    Platform.getPlatformByName("CUDA"),
-    properties,
-)
-simulation.context.setPositions(coords.positions)
-
-# Set alchemical state
-alchemical_state.lambda_sterics = 1.0
-alchemical_state.lambda_electrostatics = lambda_values[0]
-alchemical_state.apply_to_context(simulation.context)
-
-# Minimize Energy
-simulation.minimizeEnergy()
-
-# Reporters
-check_reporter = CheckpointReporter("equilibration.chk", out_freq * 10)
-dcd_reporter = DCDReporter("equilibration.dcd", out_freq * 10)
-state_reporter = StateDataReporter(
-    "equilibration.log",
-    out_freq * 10,
-    step=True,
-    kineticEnergy=True,
-    potentialEnergy=True,
-    totalEnergy=True,
-    temperature=True,
-    volume=True,
-    speed=True,
-    separator=",",
-)
-simulation.reporters.append(check_reporter)
-simulation.reporters.append(dcd_reporter)
-simulation.reporters.append(state_reporter)
-
-# MD Step
-simulation.step(equil_steps)
-simulation.saveState("equilibration.xml")
 
 # Production
-# --------------------------------------------------------------------#
-logging.info("Running production ...")
-
-# Thermostat
-integrator = LangevinIntegrator(temperature, 1.0 / openmm_unit.picoseconds, dt_prod)
-
-# Create simulation object
-simulation = Simulation(
-    coords.topology,
-    system,
-    integrator,
-    Platform.getPlatformByName("CUDA"),
-    properties,
-)
-
-# Run over lambda
-for k, lb1 in enumerate(lambda_values):
-    logging.info(f"Running short equilibration for lambda: {lb1}")
-    alchemical_state.lambda_sterics = 1.0
-    alchemical_state.lambda_electrostatics = lb1
-    alchemical_state.apply_to_context(simulation.context)
-
-    # Names
-    if k == 0:
-        previous = "equilibration"
-    else:
-        previous = f"production-{k}"
-    current = f"production-{k+1}"
-
-    simulation.loadState(f"{previous}.xml")
-    simulation.currentStep = 0
-
-    # Short equilibration step before production
-    simulation.step(equil_steps)
-
-    # Reporters
-    check_reporter = CheckpointReporter(f"{current}.xml", out_freq * 10, writeState=True)
-    dcd_reporter = DCDReporter(f"{current}.dcd", out_freq)
-    state_reporter = StateDataReporter(
-        f"{current}.log",
-        out_freq * 10,
-        step=True,
-        kineticEnergy=True,
-        potentialEnergy=True,
-        totalEnergy=True,
-        temperature=True,
-        volume=True,
-        speed=True,
-        separator=",",
+for k, lb1 in enumerate(lambda_electrostatics):
+    run_molecular_dynamics_alchemical(
+        system_xml=system_xml,
+        pdbfile=pdbfile,
+        time_steps=time_steps,
+        phase="production",
+        ligand_resname=resname,
+        window_number=k + 1,
+        lambda_electrostatics=lb1,
+        lambda_sterics=lambda_sterics,
+        restart_file="equilibration.xml" if k == 0 else f"production-{k}.xml",
+        minimize_energy=False,
+        write_energy=True,
+        write_trajectory=True,
+        write_checkpoint=True,
+        properties=platform_properties,
     )
-    simulation.reporters.append(check_reporter)
-    simulation.reporters.append(dcd_reporter)
-    simulation.reporters.append(state_reporter)
-
-    # MD step
-    logging.info(f"Running production for lambda: {lb1}")
-    for j in range(total_iterations):
-        alchemical_state.lambda_sterics = 1.0
-        alchemical_state.lambda_electrostatics = lb1
-        alchemical_state.apply_to_context(simulation.context)
-        simulation.step(out_freq)
-
-    simulation.saveState(f"{current}.xml")
-
-    simulation.reporters.pop(-1)
-    simulation.reporters.pop(-1)
-    simulation.reporters.pop(-1)
