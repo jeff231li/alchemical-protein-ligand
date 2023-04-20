@@ -178,7 +178,7 @@ attach_fractions = [float(i) / 100 for i in attach_string.split()]
 
 # 11 electrostatics and 21 lennard-jones
 lambda_elec_values = np.linspace(0, 1, 11)[::-1]
-lambda_vdw_values = np.linspace(0, 1, 21)[::-1]
+lambda_vdw_values = np.linspace(0, 1, 11)[::-1]
 
 # Load guest colvars
 with open("boresch/guest_colvars.json", "r") as file:
@@ -188,7 +188,7 @@ with open("boresch/guest_colvars.json", "r") as file:
 with open("boresch/anchor_atoms.yaml", "r") as file:
     anchor_atoms = yaml.safe_load(file)
 
-pdbfile = app.PDBFile("../02-equilibration/extra_equilibrated.pdb")
+pdbfile = app.PDBFile("../02-equilibration/production.pdb")
 with open("../02-equilibration/protein_ligand.xml", "r") as f:
     system = openmm.XmlSerializer.deserialize(f.read())
 
@@ -261,8 +261,8 @@ for window in tqdm(window_list):
 # ---------------------------- Create Elec-Bulk Files --------------------------------- #
 os.makedirs("electrostatics-bulk", exist_ok=True)
 
-prmtop = app.AmberPrmtopFile("../01-system_files/ligand-ff19SB.prmtop")
-inpcrd = app.AmberInpcrdFile("../01-system_files/ligand-ff19SB.rst7")
+prmtop = app.AmberPrmtopFile("../01-system_files/ligand-ff14SB.prmtop")
+inpcrd = app.AmberInpcrdFile("../01-system_files/ligand-ff14SB.rst7")
 system = prmtop.createSystem(
     nonbondedMethod=app.NoCutoff,
     constraints=app.HBonds,

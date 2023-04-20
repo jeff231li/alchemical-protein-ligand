@@ -87,14 +87,14 @@ ligand_sel = f"resname {ligand_resname} and not name H*"
 protein_sel = "protein and name CA"
 
 # Load PDB and XML files from equilibration step
-pdbfile = app.PDBFile("../02-equilibration/extra_equilibrated.pdb")
+pdbfile = app.PDBFile("../02-equilibration/production.pdb")
 with open("../02-equilibration/protein_ligand.xml", "r") as f:
     system = openmm.XmlSerializer.deserialize(f.read())
 
 # Create MDAnalysis Universe
 universe = Universe(
-    f"../01-system_files/protein-ligand-ff19SB.prmtop",
-    f"../02-equilibration/extra_trajectory.dcd",
+    f"../01-system_files/protein-ligand-ff14SB.prmtop",
+    f"../02-equilibration/production.dcd",
 )
 
 # Find ligand atoms
