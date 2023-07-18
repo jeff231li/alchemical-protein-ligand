@@ -21,7 +21,7 @@ For the protein, we will need to remove any hydrogen atoms otherwise `tleap` wil
 pdb4amber --nohyd protein.pdb > protein.noH.pdb
 ```
 
-Now that we have a prepared protein and ligand PDB files, we can combine these two with OpenMM modules to get a single PDB file (run `python combine_protein-ligand.py` on the terminal).
+Now that we have a prepared protein and ligand PDB files, we can combine these two with OpenMM modules to get a single PDB file (run `python 02-combine_protein-ligand.py` on the terminal).
 ```python
 from openmm.app import PDBFile, Modeller
 
@@ -40,7 +40,7 @@ with open("protein_ligand.pdb", "w") as f:
 ```
 
 ## Build AMBER Topologies
-Next, we will use the `TLeap` API from pAPRika to build the AMBER files. We will build AMBER files for the ligand and protein-ligand system with the `mbondi2` radii (used in OBC2 implicit solvent model). For the protein we will use the `ff19SB` force field model. The python code below creates the AMBER files (run `python create_system.py` on the terminal).
+Next, we will use the `TLeap` API from pAPRika to build the AMBER files. We will build AMBER files for the ligand and protein-ligand system with the `mbondi2` radii (used in OBC2 implicit solvent model). For the protein we will use the `ff19SB` force field model. The python code below creates the AMBER files (run `python 03-create_system.py` on the terminal).
 ```python
 from paprika.build.system import TLeap
 
