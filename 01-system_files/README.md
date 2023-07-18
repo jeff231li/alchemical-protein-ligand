@@ -8,7 +8,7 @@ The protein-ligand system looks like this
 ![](figure-protein-ligand.png)
 
 ## Prepare protein and ligand files
-The following commands to prepare the protein and ligand files are stored in [01-prepare_files.sh](01-prepare_files.sh) (run `bash 01-prepare.sh` on the terminal).
+The following commands to prepare the protein and ligand files are stored in [01-prepare-files.sh](01-prepare-files.sh) (run `bash 01-prepare.sh` on the terminal).
 
 First, we need to prepare the ligand files. Run the following in a terminal to generate a MOL2 file with GAFF2 atom types and AM1BCC charges
 ```bash
