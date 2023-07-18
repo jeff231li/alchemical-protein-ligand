@@ -8,6 +8,8 @@ The protein-ligand system looks like this
 ![](figure-protein-ligand.png)
 
 ## Prepare protein and ligand files
+The following commands to prepare the protein and ligand files are stored in [01-prepare_files.sh](01-prepare_files.sh) (run `bash 01-prepare.sh` on the terminal).
+
 First, we need to prepare the ligand files. Run the following in a terminal to generate a MOL2 file with GAFF2 atom types and AM1BCC charges
 ```bash
 antechamber -fi pdb -fo mol2 -i ligand.pdb -o ligand.am1bcc.gaff2.mol2 -at gaff2 -c bcc -rn LIG -pf y 
@@ -21,6 +23,7 @@ For the protein, we will need to remove any hydrogen atoms otherwise `tleap` wil
 pdb4amber --nohyd protein.pdb > protein.noH.pdb
 ```
 
+## Combine protein and ligand to a single file
 Now that we have a prepared protein and ligand PDB files, we can combine these two with OpenMM modules to get a single PDB file (run `python 02-combine_protein-ligand.py` on the terminal).
 ```python
 from openmm.app import PDBFile, Modeller
