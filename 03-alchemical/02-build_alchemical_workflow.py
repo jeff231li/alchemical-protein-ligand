@@ -241,7 +241,7 @@ for window in tqdm(window_list):
     #print(f"Creating XML for window {window} ...")
 
     # Copy PDBFile
-    shutil.copy("../02-equilibration/extra_equilibrated.pdb", f"{folder}/system.pdb")
+    shutil.copy("../02-equilibration/production.pdb", f"{folder}/system.pdb")
 
     # Load OpenMM XML
     with open("../02-equilibration/protein_ligand.xml", "r") as file:
@@ -261,8 +261,8 @@ for window in tqdm(window_list):
 # ---------------------------- Create Elec-Bulk Files --------------------------------- #
 os.makedirs("electrostatics-bulk", exist_ok=True)
 
-prmtop = app.AmberPrmtopFile("../01-system_files/ligand-ff14SB.prmtop")
-inpcrd = app.AmberInpcrdFile("../01-system_files/ligand-ff14SB.rst7")
+prmtop = app.AmberPrmtopFile("../01-system_files/ligand-ff19SB.prmtop")
+inpcrd = app.AmberInpcrdFile("../01-system_files/ligand-ff19SB.rst7")
 system = prmtop.createSystem(
     nonbondedMethod=app.NoCutoff,
     constraints=app.HBonds,
@@ -300,7 +300,7 @@ for i, lb in enumerate(tqdm(lambda_elec_values)):
     window = f"e{i:03}"
     os.makedirs(f"electrostatics-site/{window}", exist_ok=True)
     shutil.copy(
-        "../02-equilibration/extra_equilibrated.pdb",
+        "../02-equilibration/production.pdb",
         f"electrostatics-site/{window}/system.pdb",
     )
     with open(f"electrostatics-site/{window}/system.xml", "w") as file:
@@ -325,7 +325,7 @@ for i, lb in enumerate(tqdm(lambda_vdw_values)):
     window = f"v{i:03}"
     os.makedirs(f"lennard-jones/{window}", exist_ok=True)
     shutil.copy(
-        "../02-equilibration/extra_equilibrated.pdb",
+        "../02-equilibration/production.pdb",
         f"lennard-jones/{window}/system.pdb",
     )
     with open(f"lennard-jones/{window}/system.xml", "w") as file:
