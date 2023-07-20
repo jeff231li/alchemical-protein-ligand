@@ -8,4 +8,6 @@ Here, we will generate the files for running the double-decoupling method (DDM).
 The last part is estimated analytically so no simulation will be needed. I've configured the scripts to make signs  match so that the binding free energy is just the sum of all the components: 
 
 
-DG_b = DG(attach) + DG(elec_site) + DG(vdw) + DG(elec_bulk) + DG(release)
+$\Delta G_{binding} = \Delta G_{attach} + \Delta G_{elec\_site} + \Delta G_{VDW} + \Delta G_{elec\_bulk} + \Delta G_{release}$
+
+The experimental $\Delta G_{binding} = -11.22\;\mathrm{kcal/mol}$.
