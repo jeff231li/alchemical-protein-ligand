@@ -134,7 +134,10 @@ def run_molecular_dynamics_alchemical(
 
     # MD Step
     simulation.step(time_steps["simulation_steps"][phase])
-    simulation.saveState(f"{phase}-{window_number}.xml")
+    if phase == "production":
+        simulation.saveState(f"{phase}-{window_number}.xml")
+    else:
+        simulation.saveState(f"{phase}.xml")
     logger.info(f"\t\tCompleted running {phase} phase ...")
 
 
@@ -245,7 +248,7 @@ run_molecular_dynamics_alchemical(
     minimize_energy=True,
     write_energy=True,
     write_trajectory=False,
-    write_checkpoint=False,
+    write_checkpoint=True,
     properties=platform_properties,
 )
 
