@@ -11,3 +11,4 @@ The last part is estimated analytically so no simulation will be needed. I've co
 $\Delta G_{binding} = \Delta G_{attach} + \Delta G_{elec}^{site} + \Delta G_{VDW} + \Delta G_{elec}^{bulk} + \Delta G_{release}$
 
 The experimental $\Delta G_{binding} = -11.22\;\mathrm{kcal/mol}$.
+
