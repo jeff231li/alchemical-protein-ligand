@@ -203,7 +203,7 @@ alchemical_atoms = [
 ]
 alchemical_factory = AbsoluteAlchemicalFactory(
     consistent_exceptions=False,
-    alchemical_pme_treatment="exact",
+    alchemical_pme_treatment="direct-space",
     disable_alchemical_dispersion_correction=False,
 )
 alchemical_region = AlchemicalRegion(
@@ -261,8 +261,8 @@ for window in tqdm(window_list):
 # ---------------------------- Create Elec-Bulk Files --------------------------------- #
 os.makedirs("electrostatics-bulk", exist_ok=True)
 
-prmtop = app.AmberPrmtopFile("../01-system_files/ligand-ff19SB.prmtop")
-inpcrd = app.AmberInpcrdFile("../01-system_files/ligand-ff19SB.rst7")
+prmtop = app.AmberPrmtopFile("../01-system_files/ligand-ff14SB.prmtop")
+inpcrd = app.AmberInpcrdFile("../01-system_files/ligand-ff14SB.rst7")
 system = prmtop.createSystem(
     nonbondedMethod=app.NoCutoff,
     constraints=app.HBonds,

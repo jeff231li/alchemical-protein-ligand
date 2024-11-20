@@ -149,8 +149,8 @@ time_steps = {
     # ------------------------------------------------------- #
     # Change the time below if you need to run less MD steps
     "simulation_time": {
-        "thermalization": 25.0 * unit.picoseconds,
-        "equilibration": 100.0 * unit.picoseconds,
+        "thermalization": 50.0 * unit.picoseconds,
+        "equilibration": 250.0 * unit.picoseconds,
         "production": 1.0 * unit.nanoseconds,
     },
     # -------------------------------------------------------#
@@ -160,9 +160,9 @@ time_steps = {
         "production": None,
     },
     "output_frequency": {
-        "thermalization": 25.0 * unit.picoseconds,
-        "equilibration": 20.0 * unit.picoseconds,
-        "production": 5.0 * unit.picoseconds,
+        "thermalization": 50.0 * unit.picoseconds,
+        "equilibration": 50.0 * unit.picoseconds,
+        "production": 10.0 * unit.picoseconds,
     },
     "output_steps": {
         "thermalization": None,

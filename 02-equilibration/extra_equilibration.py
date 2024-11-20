@@ -3,7 +3,7 @@ from importlib import reload
 
 import numpy as np
 import openmm.unit as unit
-from openmm import LangevinIntegrator, Platform, System, XmlSerializer
+from openmm import LangevinMiddleIntegrator, Platform, System, XmlSerializer
 from openmm.app import (
     OBC2,
     AmberInpcrdFile,
@@ -38,7 +38,7 @@ def run_molecular_dynamics(
     logger.info(f"Running simulation for {phase} phase ...")
 
     # Thermostat
-    integrator = LangevinIntegrator(
+    integrator = LangevinMiddleIntegrator(
         time_steps["integrator"]["temperature"],
         time_steps["integrator"]["collision"],
         time_steps["integration_time"][phase],
@@ -124,8 +124,8 @@ platform_properties = {"Precision": "mixed"}
 # File Options
 # ------------------------------------------------------- #
 # Load AMBER Files
-prmtop = AmberPrmtopFile("../01-system_files/protein-ligand-ff19SB.prmtop")
-inpcrd = AmberInpcrdFile("../01-system_files/protein-ligand-ff19SB.rst7")
+prmtop = AmberPrmtopFile("../01-system_files/protein-ligand-ff14SB.prmtop")
+inpcrd = AmberInpcrdFile("../01-system_files/protein-ligand-ff14SB.rst7")
 
 # Create System - in vacuum with OBC2 implicit solvent model
 system = prmtop.createSystem(
@@ -159,7 +159,7 @@ time_steps = {
         "collision": 1.0 / unit.picoseconds,
     },
     "integration_time": {
-        "production-extra": 2.0 * unit.femtoseconds,
+        "production-extra": 4.0 * unit.femtoseconds,
     },
     # ------------------------------------------------------- #
     # Change the time below if you need to run less MD steps
@@ -171,7 +171,7 @@ time_steps = {
         "production-extra": None,
     },
     "output_frequency": {
-        "production-extra": 5.0 * unit.picoseconds,
+        "production-extra": 50.0 * unit.picoseconds,
     },
     "output_steps": {
         "production-extra": None,
