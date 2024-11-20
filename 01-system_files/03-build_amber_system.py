@@ -3,11 +3,11 @@ from paprika.build.system import TLeap
 # Build AMBER Topologies for Ligand
 system = TLeap()
 system.output_path = "./"
-system.output_prefix = "ligand-ff19SB"
+system.output_prefix = "ligand-ff14SB"
 system.neutralize = False
 system.pbc_type = None
 system.template_lines = [
-    "set default PBRadii mbondi2",
+    "set default PBRadii mbondi3",
     "source leaprc.gaff2",
     "loadamberparams ligand.frcmod",
     "LIG = loadmol2 ligand.am1bcc.gaff2.mol2",
@@ -20,13 +20,13 @@ system.repartition_hydrogen_mass()
 # Build AMBER Topologies for Protein-Ligand system
 system = TLeap()
 system.output_path = "./"
-system.output_prefix = "protein-ligand-ff19SB"
+system.output_prefix = "protein-ligand-ff14SB"
 system.neutralize = False
 system.pbc_type = None
 system.template_lines = [
-    "set default PBRadii mbondi2",
-    "source leaprc.protein.ff19SB",
-    #"source leaprc.water.opc",
+    "set default PBRadii mbondi3",
+    "source leaprc.protein.ff14SB",
+    "source leaprc.water.tip3p",
     "source leaprc.gaff2",
     "loadamberparams ligand.frcmod",
     "LIG = loadmol2 ligand.am1bcc.gaff2.mol2",

@@ -1,4 +1,4 @@
-REMARK   1 CREATED WITH OPENMM 7.7, 2022-12-11
+REMARK   1 CREATED WITH OPENMM 8.2, 2024-11-19
 ATOM      1  N   GLY A   1      24.470  27.520  52.260  1.00  0.00           N  
 ATOM      2  CA  GLY A   1      25.640  26.970  51.520  1.00  0.00           C  
 ATOM      3  C   GLY A   1      26.040  27.800  50.310  1.00  0.00           C  

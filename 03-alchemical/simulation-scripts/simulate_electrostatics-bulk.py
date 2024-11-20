@@ -174,14 +174,14 @@ time_steps = {
         "collision": 1.0 / unit.picoseconds,
     },
     "integration_time": {
-        "equilibration": 1.0 * unit.femtoseconds,
-        "production": 2.0 * unit.femtoseconds,
+        "equilibration": 2.0 * unit.femtoseconds,
+        "production": 4.0 * unit.femtoseconds,
     },
     # ------------------------------------------------------- #
     # Change the time below if you need to run less MD steps
     "simulation_time": {
-        "equilibration": 50.0 * unit.picoseconds,
-        "production": 500.0 * unit.picoseconds,
+        "equilibration": 100.0 * unit.picoseconds,
+        "production": 1.0 * unit.nanoseconds,
     },
     # -------------------------------------------------------#
     "simulation_steps": {
@@ -189,8 +189,8 @@ time_steps = {
         "production": None,
     },
     "output_frequency": {
-        "equilibration": 20.0 * unit.picoseconds,
-        "production": 1.0 * unit.picoseconds,
+        "equilibration": 50.0 * unit.picoseconds,
+        "production": 10.0 * unit.picoseconds,
     },
     "output_steps": {
         "equilibration": None,
